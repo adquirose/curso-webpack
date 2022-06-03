@@ -2,12 +2,15 @@ const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const CopyPlugin = require('copy-webpack-plugin') 
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
+const TerserPlugin = require('terser-webpack-plugin')
 
 module.exports = {
     entry: './src/index.js',
     output: {
         path: path.resolve(__dirname,'dist'),
-        filename:'main.js'
+        filename:'js/[name].[contenthash].js',
+        assetModuleFilename: 'assets/images/[hash][ext][query]'
     },
     resolve:{
         extensions:['.js']
@@ -31,7 +34,14 @@ module.exports = {
             {
                 test:/\.png/,
                 type:'asset/resource'
-            }
+            },
+            {
+                test: /\.(woff|woff2|eot|ttf|otf)$/i,
+                type: "asset/resource",
+                   generator: {
+                       filename: "assets/fonts/[name].[contenthash].[ext]",
+                   },
+            }           	          		
         ]
     },
     plugins:[
@@ -40,7 +50,9 @@ module.exports = {
             template:'./public/index.html',
             filename:'./index.html'
         }),
-        new MiniCssExtractPlugin(),
+        new MiniCssExtractPlugin({
+            filename: "css/[name].[contenthash].css"
+        }),
         new CopyPlugin({
             patterns:[
                 {
@@ -49,5 +61,13 @@ module.exports = {
                 }
             ]
         })
-    ]
+    ],
+    optimization:{
+        minimize:true,
+        minimizer:[
+            new CssMinimizerPlugin(),
+            new TerserPlugin(),
+        ]
+
+    }
 }
